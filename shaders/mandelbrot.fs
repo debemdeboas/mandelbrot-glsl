@@ -4,13 +4,11 @@ uniform vec2 u_resolution;
 uniform vec2 u_zoomCenter;
 uniform float u_zoomSize;
 uniform int u_maxIterations;
+uniform vec3 u_frgb;
+uniform float u_time;
 
 vec2 f(vec2 x, vec2 c) {
   return mat2(x, -x.y, x.x) * x + c;
-}
-
-vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
-  return a + b * cos(6.28318 * (c * t + d));
 }
 
 float mandelbrot(vec2 c) {
@@ -31,7 +29,7 @@ float mandelbrot(vec2 c) {
     l += 1.0;
   }
 
-  if (l > 511.0) {
+  if (l > float(u_maxIterations)) {
     return 0.0;
   }
 
@@ -42,26 +40,24 @@ float mandelbrot(vec2 c) {
 }
 
 void main() {
-  vec2 uv = gl_FragCoord.xy / u_resolution;
-  vec2 c = u_zoomCenter + (uv * 4.0 - vec2(2.0)) * (u_zoomSize / 4.0);
-  float l = mandelbrot(c);
+  const int AA = 2;
   vec3 color = vec3(0.0);
-  color += 0.4 + 0.5 * cos(3.0 + l * 0.15 + vec3(0.5, 0.7, 1.));
+
+  for (int m = 0; m < AA; m++) {
+    for (int n = 0; n < AA; n++) {
+      vec2 uv = gl_FragCoord.xy / (u_resolution);
+      float w = float(AA * m + n);
+      float time = u_time + 0.5 * (1.0 / 24.0) * w / float(AA * AA);
+      vec2 c = u_zoomCenter + (uv * 4.0 - vec2(2.0)) * (u_zoomSize / 4.0);
+      float l = mandelbrot(c);
+
+      // float t = sin(time * 0.5 + uv.y * 10.0) + 0.5;
+      float t = 1.;
+      color += 0.4 + 0.6 * cos(3.0 + l * 0.15 + u_frgb);
+    }
+  }
+
+  color /= float(AA*AA);
+
   gl_FragColor = vec4(color, 1.0);
-  // vec2 uv = gl_FragCoord.xy / u_resolution;
-  // vec2 c = u_zoomCenter + (uv * 4.0 - vec2(2.0)) * (u_zoomSize / 4.0);
-  // vec2 x = vec2(0.0);
-  // bool escaped = false;
-  // int iterations = 0;
-  // for (int i = 0; i < 1000000; i++) {
-  //   if (i > u_maxIterations)
-  //     break;
-  //   iterations = i;
-  //   x = f(x, c);
-  //   if (length(x) > 2.0) {
-  //     escaped = true;
-  //     break;
-  //   }
-  // }
-  // gl_FragColor = escaped ? vec4(palette(float(iterations) / float(100), vec3(0.0), vec3(0.59, 0.55, 0.75), vec3(0.1, 0.2, 0.3), vec3(0.75)), 1.0) : vec4(vec3(0.85, 0.99, 1.0), 1.0);
 }

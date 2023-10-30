@@ -15,7 +15,47 @@ function _vertexGLSL() {
     // return readTextFile("shaders/mandelbrot.vs");
 }
 
+function hashString(string) {
+    let hash = 0,
+        i;
+    if (string.length === 0) return hash;
+    for (i = 0; i < string.length; i++) {
+        hash = (hash << 5) - hash + string.charCodeAt(i); // eslint-disable-line no-bitwise
+        hash |= 0; // eslint-disable-line no-bitwise
+    }
+    return hash;
+}
+
+function scaleNum(num, op = Math.sin) {
+    let res = op(num) * 100;
+
+    if (res < 0) {
+        res += 1;
+    }
+
+    return Math.trunc(res) / 100;
+}
+
+function resizeCanvasToDisplaySize(canvas) {
+    // Lookup the size the browser is displaying the canvas in CSS pixels.
+    const displayWidth = window.innerWidth;
+    const displayHeight = window.innerHeight;
+
+    // Check if the canvas is not the same size.
+    const needResize = canvas.width !== displayWidth || canvas.height !== displayHeight;
+
+    if (needResize) {
+        // Make the canvas the same size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+}
+
 function main() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get("name", "john snow");
+    const bday = urlParams.get("birthdate", "123 123 123");
+
     /* locate the canvas element */
     let canvas_element = document.getElementById("glcanvas");
 
@@ -53,25 +93,70 @@ function main() {
     gl.enableVertexAttribArray(coord);
 
     /* find uniform locations */
-    let resolution_uniform = gl.getUniformLocation(mandelbrot_program, "u_resolution");
-    let zoom_center_uniform = gl.getUniformLocation(mandelbrot_program, "u_zoomCenter");
-    let zoom_size_uniform = gl.getUniformLocation(mandelbrot_program, "u_zoomSize");
-    let max_iterations_uniform = gl.getUniformLocation(mandelbrot_program, "u_maxIterations");
+    let u_resolution = gl.getUniformLocation(mandelbrot_program, "u_resolution");
+    let u_zoom_center = gl.getUniformLocation(mandelbrot_program, "u_zoomCenter");
+    let u_zoom_size = gl.getUniformLocation(mandelbrot_program, "u_zoomSize");
+    let u_max_iterations = gl.getUniformLocation(mandelbrot_program, "u_maxIterations");
+    let u_frgb = gl.getUniformLocation(mandelbrot_program, "u_frgb");
+    let u_time = gl.getUniformLocation(mandelbrot_program, "u_time");
+
+    const MAX_ITER = 511;
 
     /* these hold the state of zoom operation */
     let zoom_center = [0.0, 0.0];
     let target_zoom_center = [0.0, 0.0];
-    let zoom_size = 4.0;
+    let zoom_size = 3.0;
     let stop_zooming = true;
     let zoom_factor = 1.0;
-    let max_iterations = 1500;
+    let max_iterations = MAX_ITER;
+    let colors = [
+        scaleNum(hashString(username)),
+        scaleNum(hashString(bday)),
+        scaleNum(hashString(username) * hashString(bday), Math.cos),
+    ];
 
-    let renderFrame = function () {
+    // function setCanvasSize() {
+    //     let canvas = document.getElementById("glcanvas");
+    //     let container = document.getElementById("canvas-container");
+    //     let aspectRatio = 16 / 9; // set the desired aspect ratio
+    //     let width = window.innerWidth;
+    //     let height = window.innerHeight;
+    //     let containerRatio = width / height;
+    //     if (containerRatio > aspectRatio) {
+    //         width = height * aspectRatio;
+    //     } else {
+    //         height = width / aspectRatio;
+    //     }
+    //     canvas.width = width;
+    //     canvas.height = height;
+    //     container.style.width = width + "px";
+    //     container.style.height = height + "px";
+
+    //     // Adjust the zoom center and size
+    //     let zoomCenterX = width / 2;
+    //     let zoomCenterY = height / 2;
+    //     let zoomSize = Math.max(width, height);
+    //     target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + (zoomCenterX * zoom_size) / width;
+    //     target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - (zoomCenterY * zoom_size) / height;
+    //     zoom_size = zoomSize;
+    // }
+    // window.addEventListener("resize", setCanvasSize);
+    // setCanvasSize();
+
+    // resizeCanvasToDisplaySize(canvas_element);
+
+    let renderFrame = function (time) {
+        // resizeCanvasToDisplaySize(canvas_element);
+
+        time /= 100;
+
         /* bind inputs & render frame */
-        gl.uniform2f(resolution_uniform, canvas_element.width, canvas_element.height);
-        gl.uniform2f(zoom_center_uniform, zoom_center[0], zoom_center[1]);
-        gl.uniform1f(zoom_size_uniform, zoom_size);
-        gl.uniform1i(max_iterations_uniform, max_iterations);
+        gl.uniform2f(u_resolution, canvas_element.width, canvas_element.height);
+        gl.uniform2f(u_zoom_center, zoom_center[0], zoom_center[1]);
+        gl.uniform1f(u_zoom_size, zoom_size);
+        gl.uniform1i(u_max_iterations, max_iterations);
+        gl.uniform3f(u_frgb, colors[0], colors[1], colors[2]);
+        gl.uniform1f(u_time, time);
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -80,8 +165,8 @@ function main() {
         if (!stop_zooming) {
             /* zooming in progress */
             /* gradually decrease number of iterations, reducing detail, to speed up rendering */
-            max_iterations -= 10;
-            if (max_iterations < 100) max_iterations = 100;
+            // max_iterations -= 10;
+            // if (max_iterations < 100) max_iterations = 100;
 
             /* zoom in */
             zoom_size *= zoom_factor;
@@ -91,17 +176,22 @@ function main() {
             zoom_center[1] += 0.1 * (target_zoom_center[1] - zoom_center[1]);
 
             window.requestAnimationFrame(renderFrame);
-        } else if (max_iterations < 100) {
-            /* once zoom operation is complete, bounce back to normal detail level */
-            max_iterations += 10;
+        } else {
+            max_iterations = MAX_ITER;
             window.requestAnimationFrame(renderFrame);
         }
     };
 
     /* input handling */
     canvas_element.onmousedown = function (e) {
-        let x_part = e.offsetX / canvas_element.width;
-        let y_part = e.offsetY / canvas_element.height;
+        let rect = canvas_element.getBoundingClientRect();
+        let x_part = e.offsetX / window.innerWidth;
+        let y_part = e.offsetY / window.innerHeight;
+        // let x_part = (e.offsetY - rect.left) / (rect.width / window.innerWidth);
+        // let y_part = (e.clientY - rect.top) / (rect.height / window.innerHeight);
+
+        console.log(rect, x_part, y_part);
+
         target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + x_part * zoom_size;
         target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - y_part * zoom_size;
         stop_zooming = false;
