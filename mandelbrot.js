@@ -152,6 +152,8 @@ function main() {
     };
 
     const handleInput = function (e) {
+        e.preventDefault();
+
         let x_part, y_part;
         if (e.type === "mousedown") {
             x_part = e.offsetX / window.innerWidth;
