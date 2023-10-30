@@ -179,15 +179,10 @@ function main() {
             zoom_factor = e.buttons & 1 ? 0.99 : 1.01;
         } else if (e.type === "touchstart") {
             let touch = e.touches[0];
-
             x_part = touch.clientX / window.innerWidth;
             y_part = touch.clientY / window.innerHeight;
-
-            console.log(x_part, y_part, e.touches, touch);
-
             zoom_factor = e.touches.length === 1 ? 0.99 : 1.01;
         } else if (e.type === "touchend" || e.type === "touchcancel") {
-            console.log("stop zooming");
             stop_zooming = true;
             renderFrame();
             return true;
