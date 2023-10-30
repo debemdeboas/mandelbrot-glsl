@@ -151,18 +151,29 @@ function main() {
         }
     };
 
-    /* input handling */
-    canvas_element.onmousedown = function (e) {
-        let x_part = e.offsetX / window.innerWidth;
-        let y_part = e.offsetY / window.innerHeight;
+    const handleInput = function (e) {
+        let x_part, y_part;
+        if (e.type === "mousedown") {
+            x_part = e.offsetX / window.innerWidth;
+            y_part = e.offsetY / window.innerHeight;
+            zoom_factor = e.buttons & 1 ? 0.99 : 1.01;
+        } else if (e.type === "touchstart") {
+            let touch = e.touches[0];
+            x_part = touch.clientX / window.innerWidth;
+            y_part = touch.clientY / window.innerHeight;
+            zoom_factor = len(e.touches) === 1 ? 0.99 : 1.01;
+        }
 
         target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + x_part * zoom_size;
         target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - y_part * zoom_size;
         stop_zooming = false;
-        zoom_factor = e.buttons & 1 ? 0.99 : 1.01;
         renderFrame();
         return true;
     };
+
+    /* input handling */
+    canvas_element.onmousedown = handleInput;
+    canvas_element.ontouchstart = handleInput;
 
     canvas_element.oncontextmenu = function (e) {
         return false;
