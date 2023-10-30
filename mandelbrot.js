@@ -51,13 +51,8 @@ function main() {
     const username = urlParams.get("name", "ron swanson");
     const bday = urlParams.get("birthdate", "42-42-42");
 
-    /* locate the canvas element */
     let canvas_element = document.getElementById("glcanvas");
-
-    /* obtain a webgl rendering context */
     let gl = canvas_element.getContext("webgl2");
-
-    /* get shader code from the <script> tags */
     let vertex_shader_src = vertexGLSL();
     let fragment_shader_src = fragmentGLSL();
 
@@ -87,7 +82,7 @@ function main() {
     gl.vertexAttribPointer(coord, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(coord);
 
-    /* find uniform locations */
+    /* get uniform locations */
     let u_resolution = gl.getUniformLocation(mandelbrot_program, "u_resolution");
     let u_zoom_center = gl.getUniformLocation(mandelbrot_program, "u_zoomCenter");
     let u_zoom_size = gl.getUniformLocation(mandelbrot_program, "u_zoomSize");
@@ -98,12 +93,13 @@ function main() {
 
     const MAX_ITER = 400;
 
-    /* these hold the state of zoom operation */
+    // zooming
     let zoom_center = [0.0, 0.0];
     let target_zoom_center = [0.0, 0.0];
     let zoom_size = 3.0;
     let stop_zooming = true;
     let zoom_factor = 1.0;
+
     let max_iterations = MAX_ITER;
     let colors = [
         scaleNum(hashString(username)),
@@ -157,11 +153,8 @@ function main() {
 
     /* input handling */
     canvas_element.onmousedown = function (e) {
-        let rect = canvas_element.getBoundingClientRect();
         let x_part = e.offsetX / window.innerWidth;
         let y_part = e.offsetY / window.innerHeight;
-
-        console.log(rect, x_part, y_part);
 
         target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + x_part * zoom_size;
         target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - y_part * zoom_size;
