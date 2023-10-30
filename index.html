@@ -23,9 +23,6 @@
         <script>
             function redirect() {
                 let formData = new FormData(document.getElementById("userForm"));
-
-                console.log(...formData);
-
                 let params = new URLSearchParams(formData);
                 window.location.href = "mandelbrot.html?" + params.toString();
             }

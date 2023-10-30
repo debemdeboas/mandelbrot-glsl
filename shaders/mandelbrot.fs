@@ -7,10 +7,6 @@ uniform int u_maxIterations;
 uniform vec3 u_frgb;
 uniform float u_time;
 
-vec2 f(vec2 x, vec2 c) {
-  return mat2(x, -x.y, x.x) * x + c;
-}
-
 float mandelbrot(vec2 c) {
   float c2 = dot(c, c);
   if ((256.0 * c2 * c2 - 96.0 * c2 + 32.0 * c.x - 3.0 < 0.0) ||
