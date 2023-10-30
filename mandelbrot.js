@@ -100,7 +100,7 @@ function main() {
     let u_frgb = gl.getUniformLocation(mandelbrot_program, "u_frgb");
     let u_time = gl.getUniformLocation(mandelbrot_program, "u_time");
 
-    const MAX_ITER = 511;
+    const MAX_ITER = 400;
 
     /* these hold the state of zoom operation */
     let zoom_center = [0.0, 0.0];
@@ -115,39 +115,7 @@ function main() {
         scaleNum(hashString(username) * hashString(bday), Math.cos),
     ];
 
-    // function setCanvasSize() {
-    //     let canvas = document.getElementById("glcanvas");
-    //     let container = document.getElementById("canvas-container");
-    //     let aspectRatio = 16 / 9; // set the desired aspect ratio
-    //     let width = window.innerWidth;
-    //     let height = window.innerHeight;
-    //     let containerRatio = width / height;
-    //     if (containerRatio > aspectRatio) {
-    //         width = height * aspectRatio;
-    //     } else {
-    //         height = width / aspectRatio;
-    //     }
-    //     canvas.width = width;
-    //     canvas.height = height;
-    //     container.style.width = width + "px";
-    //     container.style.height = height + "px";
-
-    //     // Adjust the zoom center and size
-    //     let zoomCenterX = width / 2;
-    //     let zoomCenterY = height / 2;
-    //     let zoomSize = Math.max(width, height);
-    //     target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + (zoomCenterX * zoom_size) / width;
-    //     target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - (zoomCenterY * zoom_size) / height;
-    //     zoom_size = zoomSize;
-    // }
-    // window.addEventListener("resize", setCanvasSize);
-    // setCanvasSize();
-
-    // resizeCanvasToDisplaySize(canvas_element);
-
     let renderFrame = function (time) {
-        // resizeCanvasToDisplaySize(canvas_element);
-
         time /= 100;
 
         /* bind inputs & render frame */
@@ -165,8 +133,8 @@ function main() {
         if (!stop_zooming) {
             /* zooming in progress */
             /* gradually decrease number of iterations, reducing detail, to speed up rendering */
-            // max_iterations -= 10;
-            // if (max_iterations < 100) max_iterations = 100;
+            max_iterations -= 10;
+            if (max_iterations < 200) max_iterations = 200;
 
             /* zoom in */
             zoom_size *= zoom_factor;
