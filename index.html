@@ -16,22 +16,10 @@
                     <input type="date" id="birthdate" name="birthdate" required />
                 </div>
                 <div class="input-container">
-                    <input type="submit" value="Submit" />
+                    <input style="cursor: pointer" type="submit" value="Submit" />
                 </div>
             </form>
         </div>
-        <!-- <div class="slidecontainer">
-                <div>
-                    <input type="range" min="-100" max="100" value="0" class="slider" id="sliderPosX" />
-                </div>
-                <div>
-                    <input type="range" min="-100" max="100" value="0" class="slider" id="sliderPosY" />
-                </div>
-                <div>
-                    <input type="range" min="-100" max="100" value="0" class="slider" id="sliderZoomAmount" />
-                </div>
-            </div> -->
-
         <script>
             function redirect() {
                 let formData = new FormData(document.getElementById("userForm"));
@@ -42,21 +30,5 @@
                 window.location.href = "mandelbrot.html?" + params.toString();
             }
         </script>
-        <!-- const userForm = document.getElementById("userForm");
-        userForm.addEventListener("submit", (event) => {
-            console.log(event);
-
-            let formData = new FormData(userForm);
-            let params = new URLSearchParams(formData);
-            
-            console.log(formData);
-            console.log(...formData);
-
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ", " + pair[1]);
-            }
-
-            // window.location.href = "mandelbrot.html?" + params.toString();
-        }); -->
     </body>
 </html>
