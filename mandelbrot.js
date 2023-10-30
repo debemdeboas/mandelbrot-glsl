@@ -5,34 +5,29 @@ function readTextFile(filepath) {
     return xhr.responseText;
 }
 
-function _fragmentGLSL() {
+function fragmentGLSL() {
     return readTextFile("shaders/mandelbrot.fs");
-    // return readTextFile("shaders/mandelbrot.fs");
 }
 
-function _vertexGLSL() {
+function vertexGLSL() {
     return readTextFile("shaders/mandelbrot.vs");
-    // return readTextFile("shaders/mandelbrot.vs");
 }
 
 function hashString(string) {
-    let hash = 0,
-        i;
+    let hash = 0;
     if (string.length === 0) return hash;
-    for (i = 0; i < string.length; i++) {
-        hash = (hash << 5) - hash + string.charCodeAt(i); // eslint-disable-line no-bitwise
-        hash |= 0; // eslint-disable-line no-bitwise
+    for (let i = 0; i < string.length; i++) {
+        hash = (hash << 5) - hash + string.charCodeAt(i);
+        hash |= 0;
     }
     return hash;
 }
 
 function scaleNum(num, op = Math.sin) {
     let res = op(num) * 100;
-
     if (res < 0) {
         res += 1;
     }
-
     return Math.trunc(res) / 100;
 }
 
@@ -53,8 +48,8 @@ function resizeCanvasToDisplaySize(canvas) {
 
 function main() {
     const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get("name", "john snow");
-    const bday = urlParams.get("birthdate", "123 123 123");
+    const username = urlParams.get("name", "ron swanson");
+    const bday = urlParams.get("birthdate", "42-42-42");
 
     /* locate the canvas element */
     let canvas_element = document.getElementById("glcanvas");
@@ -63,8 +58,8 @@ function main() {
     let gl = canvas_element.getContext("webgl2");
 
     /* get shader code from the <script> tags */
-    let vertex_shader_src = _vertexGLSL();
-    let fragment_shader_src = _fragmentGLSL();
+    let vertex_shader_src = vertexGLSL();
+    let fragment_shader_src = fragmentGLSL();
 
     /* compile and link shaders */
     let vertex_shader = gl.createShader(gl.VERTEX_SHADER);
@@ -99,6 +94,7 @@ function main() {
     let u_max_iterations = gl.getUniformLocation(mandelbrot_program, "u_maxIterations");
     let u_frgb = gl.getUniformLocation(mandelbrot_program, "u_frgb");
     let u_time = gl.getUniformLocation(mandelbrot_program, "u_time");
+    let want_to_print = false;
 
     const MAX_ITER = 400;
 
@@ -129,6 +125,15 @@ function main() {
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
+        /* print screen */
+        if (want_to_print) {
+            want_to_print = false;
+            let a = document.createElement("a");
+            a.href = canvas_element.toDataURL("image/png", 1.0).replace("image/png", "image/octet-stream");
+            a.download = `mandelbrot-${username}.png`;
+            a.click();
+        }
+
         /* handle zoom */
         if (!stop_zooming) {
             /* zooming in progress */
@@ -155,8 +160,6 @@ function main() {
         let rect = canvas_element.getBoundingClientRect();
         let x_part = e.offsetX / window.innerWidth;
         let y_part = e.offsetY / window.innerHeight;
-        // let x_part = (e.offsetY - rect.left) / (rect.width / window.innerWidth);
-        // let y_part = (e.clientY - rect.top) / (rect.height / window.innerHeight);
 
         console.log(rect, x_part, y_part);
 
@@ -167,11 +170,19 @@ function main() {
         renderFrame();
         return true;
     };
+
     canvas_element.oncontextmenu = function (e) {
         return false;
     };
+
     canvas_element.onmouseup = function (e) {
         stop_zooming = true;
+    };
+
+    window.onkeydown = function (e) {
+        if (e.key === "p" || e.key === "P") {
+            want_to_print = true;
+        }
     };
 
     /* display initial frame */
