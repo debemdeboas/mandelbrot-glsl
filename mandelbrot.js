@@ -107,7 +107,7 @@ function main() {
     let u_time = gl.getUniformLocation(mandelbrot_program, "u_time");
     let want_to_print = false;
 
-    const MAX_ITER = window.mobileCheck() ? 120 : 400;
+    const MAX_ITER = window.mobileCheck() ? 30 : 400;
 
     // zooming
     let zoom_center = [0.0, 0.0];
@@ -182,10 +182,6 @@ function main() {
             x_part = touch.clientX / window.innerWidth;
             y_part = touch.clientY / window.innerHeight;
             zoom_factor = e.touches.length === 1 ? 0.99 : 1.01;
-        } else if (e.type === "touchend" || e.type === "touchcancel") {
-            stop_zooming = true;
-            renderFrame();
-            return true;
         }
 
         target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + x_part * zoom_size;
@@ -195,11 +191,17 @@ function main() {
         return true;
     };
 
+    const handleTouchCancel = function (e) {
+        stop_zooming = true;
+        renderFrame();
+        return true;
+    };
+
     /* input handling */
     canvas_element.onmousedown = handleInput;
     canvas_element.ontouchstart = handleInput;
-    canvas_element.ontouchend = handleInput;
-    canvas_element.ontouchcancel = handleInput;
+    canvas_element.ontouchend = handleTouchCancel;
+    canvas_element.ontouchcancel = handleTouchCancel;
 
     canvas_element.oncontextmenu = function (e) {
         return false;
