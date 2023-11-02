@@ -170,8 +170,6 @@ function main() {
             zoom_factor = e.touches.length === 1 ? 0.99 : 1.01;
         }
 
-        console.log(x_part, y_part);
-
         target_zoom_center[0] = zoom_center[0] - zoom_size / 2.0 + x_part * zoom_size;
         target_zoom_center[1] = zoom_center[1] + zoom_size / 2.0 - y_part * zoom_size;
         stop_zooming = false;
