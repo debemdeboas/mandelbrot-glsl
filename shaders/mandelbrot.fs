@@ -17,12 +17,17 @@ float mandelbrot(vec2 c) {
   const float B = 512.0;
   float l = 0.0;
   vec2 z = vec2(0.0);
-  for (int i = 0; i < 512; i++) {
+
+  for (int i = 0; i >= 0; i++) {
     z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
     if (dot(z, z) > (B * B)) {
       break;
     }
     l += 1.0;
+
+    if (i >= u_maxIterations) {
+      break;
+    }
   }
 
   if (l > float(u_maxIterations)) {
